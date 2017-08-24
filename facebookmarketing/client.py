@@ -358,26 +358,105 @@ class Client(object):
     def create_ad_account_insights(self):
         raise NotImplementedError
 
-    def get_ad_instagram_accounts(self):
+    def get_ad_account_instagram_accounts(self):
         raise NotImplementedError
 
-    def get_ad_minimum_budgets(self):
+    def get_ad_account_minimum_budgets(self):
         raise NotImplementedError
 
-    def get_ad_offline_conversion_data_sets(self):
+    def get_ad_account_offline_conversion_data_sets(self):
         raise NotImplementedError
 
-    def get_ad_offsitepixels(self):
+    def get_ad_account_offsitepixels(self):
         raise NotImplementedError
 
-    def create_ad_offsitepixels(self):
+    def create_account_ad_offsitepixels(self):
         raise NotImplementedError
 
-    def get_ad_partnercategories(self):
+    def get_ad_account_partnercategories(self):
         raise NotImplementedError
 
-    def get_ad_partners(self):
+    def get_ad_account_partners(self):
         raise NotImplementedError
+
+    def get_ad_account_publisher_block_lists(self):
+        raise NotImplementedError
+
+    def create_ad_account_publisher_block_lists(self):
+        raise NotImplementedError
+
+    def get_ad_account_ratecard(self):
+        raise NotImplementedError
+
+    def get_ad_account_reachestimate(self):
+        raise NotImplementedError
+
+    def get_ad_account_reach_frequency_predictions(self):
+        raise NotImplementedError
+
+    def create_ad_account_reach_frequency_predictions(self):
+        raise NotImplementedError
+
+    def get_ad_account_roas(self):
+        raise NotImplementedError
+
+    def get_ad_account_rule_execution_history(self):
+        raise NotImplementedError
+
+    def get_ad_account_targeting_browse(self):
+        raise NotImplementedError
+
+    def get_ad_account_targeting_search(self):
+        raise NotImplementedError
+
+    def get_ad_account_targeting_sentence_lines(self):
+        raise NotImplementedError
+
+    def get_ad_account_targeting_suggestions(self):
+        raise NotImplementedError
+
+    def get_ad_account_targeting_validations(self):
+        raise NotImplementedError
+
+    def get_ad_account_targeting_tracking(self):
+        raise NotImplementedError
+
+    def create_ad_account_targeting_tracking(self):
+        raise NotImplementedError
+
+    def delete_ad_account_targeting_tracking(self):
+        raise NotImplementedError
+
+    def get_ad_account_targeting_transactions(self):
+        raise NotImplementedError
+
+    def get_ad_account_users(self):
+        raise NotImplementedError
+
+    # TODO Endpoints
+    # Ad
+    # Creative
+    # Ad
+    # Image
+    # Ad
+    # Previews
+    # Ad
+    # Preview
+    # Plugin
+    # Ad
+    # Set
+    # Ad
+    # User
+    # Ad
+    # Video
+    # Campaign
+    # Connection
+    # Objects
+    # Currencies
+    # Image
+    # Crop
+    # Product
+    # Catalog
 
     def _request(self, method, url, params=None, data=None):
         response = requests.request(method.value, url, params=params, data=data)

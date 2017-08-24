@@ -3,12 +3,12 @@ from facebookmarketing.client import Client
 from urllib.parse import urlparse, parse_qs
 
 
-class FacebookLeadsTestCases(TestCase):
+class FacebookMarketingTestCases(TestCase):
     def setUp(self):
-        self.app_id = 123515258223488
-        self.app_secret = '05ed7c58459462838628dc750a1edda2'
+        self.app_id = 0
+        self.app_secret = ''
         self.client = Client(self.app_id, self.app_secret, 'v2.10')
-        self.redirect_url = 'https://261b04b7.ngrok.io'
+        self.redirect_url = ''
         self.scope = ['manage_pages']
 
     def test_authorization_url(self):

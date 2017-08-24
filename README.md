@@ -19,19 +19,24 @@ Get authorization url
 url = client.authorization_url('REDIRECT_URL', ['manage_pages'])
 ```
 
-Exchange the code for a token
+Exchange the code for an access token
 ```
 token = client.exchange_code('REDIRECT_URL', 'CODE')
 ```
 
-Extend a short-lived token for a long-lived token
+Extend a short-lived access token for a long-lived access token
 ```
 token = client.extend_token('SHORT-LIVED TOKEN')
 ```
 
+Get app token
+```
+token = client.get_app_token()
+```
+
 Inspect a token
 ```
-info = client.inspect_token('INPUT TOKEN', 'TOKEN)
+info = client.inspect_token('INPUT TOKEN', 'APP TOKEN')
 ```
 
 Set the access token
