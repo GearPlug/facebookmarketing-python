@@ -1,3 +1,11 @@
+class AccessTokenRequired(Exception):
+    pass
+
+
+class UnexpectedError(Exception):
+    pass
+
+
 class Error(Exception):
     pass
 
