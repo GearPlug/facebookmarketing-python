@@ -11,7 +11,7 @@ pip install
 ```
 from facebookmarketing.client import Client
 
-client = Client(APP_ID, APP_SECRET, 'v2.10')
+client = Client('APP_ID', 'APP_SECRET', 'v2.10')
 ```
 
 Get authorization url
