@@ -21,7 +21,7 @@ class Client(object):
         """Sets the Access Token for its use in this library.
 
         Args:
-            token: A string with the Access Token.
+            token: A dict with the Access Token.
 
         """
         self.access_token = token
@@ -120,12 +120,14 @@ class Client(object):
 
     def _get_params(self):
         return {
-            'access_token': self.access_token,
+            'access_token': self.access_token['access_token'],
             'appsecret_proof': self._get_app_secret_proof()
         }
 
     def _get_app_secret_proof(self):
-        h = hmac.new(self.app_secret.encode('utf-8'), msg=self.access_token.encode('utf-8'), digestmod=hashlib.sha256)
+        key = self.app_secret.encode('utf-8')
+        msg = self.access_token['access_token'].encode('utf-8')
+        h = hmac.new(key, msg=msg, digestmod=hashlib.sha256)
         return h.hexdigest()
 
     @access_token_required
@@ -496,6 +498,6 @@ class Client(object):
             elif error_enum == ErrorEnum.ExtendedPermissionRequired:
                 raise exception.ExtendedPermissionRequiredError(message)
             else:
-                raise exception.Error('Error: {}. Message {}'.format(code, message))
+                raise exception.BaseError('Error: {}. Message {}'.format(code, message))
 
         return response

@@ -1,50 +1,50 @@
-class AccessTokenRequired(Exception):
+class BaseError(Exception):
     pass
 
 
-class UnexpectedError(Exception):
+class AccessTokenRequired(BaseError):
     pass
 
 
-class Error(Exception):
+class UnexpectedError(BaseError):
     pass
 
 
-class UnknownError(Exception):
+class UnknownError(BaseError):
     pass
 
 
-class AppRateLimitError(Exception):
+class AppRateLimitError(BaseError):
     pass
 
 
-class AppPermissionRequiredError(Exception):
+class AppPermissionRequiredError(BaseError):
     pass
 
 
-class UserRateLimitError(Exception):
+class UserRateLimitError(BaseError):
     pass
 
 
-class InvalidParameterError(Exception):
+class InvalidParameterError(BaseError):
     pass
 
 
-class SessionKeyInvalidError(Exception):
+class SessionKeyInvalidError(BaseError):
     pass
 
 
-class IncorrectPermissionError(Exception):
+class IncorrectPermissionError(BaseError):
     pass
 
 
-class InvalidOauth20AccessTokenError(Exception):
+class InvalidOauth20AccessTokenError(BaseError):
     pass
 
 
-class PermissionError(Exception):
+class PermissionError(BaseError):
     pass
 
 
-class ExtendedPermissionRequiredError(Exception):
+class ExtendedPermissionRequiredError(BaseError):
     pass
