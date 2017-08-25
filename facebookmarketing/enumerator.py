@@ -4,6 +4,7 @@ from enum import Enum
 class MethodEnum(Enum):
     GET = 'GET'
     POST = 'POST'
+    DELETE = 'DELETE'
 
 
 class ErrorEnum(Enum):

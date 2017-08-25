@@ -71,3 +71,28 @@ leads = client.get_ad_leads('FORM_ID')
 ```
 python tests/test_client.py
 ```
+
+## TODO Endpoints
+- Ad
+- Creative
+- Ad
+- Image
+- Ad
+- Previews
+- Ad
+- Preview
+- Plugin
+- Ad
+- Set
+- Ad
+- User
+- Ad
+- Video
+- Campaign
+- Connection
+- Objects
+- Currencies
+- Image
+- Crop
+- Product
+- Catalog

@@ -3,7 +3,7 @@ import hmac
 import requests
 from facebookmarketing import exception
 from facebookmarketing.decorator import access_token_required
-from facebookmarketing.enumerate import MethodEnum, ErrorEnum
+from facebookmarketing.enumerator import MethodEnum, ErrorEnum
 from urllib.parse import urlencode
 
 
@@ -21,7 +21,7 @@ class Client(object):
         """Sets the Access Token for its use in this library.
 
         Args:
-            token: A dict with the Access Token.
+            token: A string with the Access Token.
 
         """
         self.access_token = token
@@ -118,15 +118,16 @@ class Client(object):
         url = self.BASE_URL + '/debug_token'
         return self._request(MethodEnum.GET, url, params=params)
 
-    def _get_params(self):
+    def _get_params(self, token=None):
+        _token = token if token else self.access_token
         return {
-            'access_token': self.access_token['access_token'],
-            'appsecret_proof': self._get_app_secret_proof()
+            'access_token': _token,
+            'appsecret_proof': self._get_app_secret_proof(_token)
         }
 
-    def _get_app_secret_proof(self):
+    def _get_app_secret_proof(self, token):
         key = self.app_secret.encode('utf-8')
-        msg = self.access_token['access_token'].encode('utf-8')
+        msg = token.encode('utf-8')
         h = hmac.new(key, msg=msg, digestmod=hashlib.sha256)
         return h.hexdigest()
 
@@ -153,6 +154,26 @@ class Client(object):
         params = self._get_params()
         url = self.BASE_URL + '/me/accounts'
         return self._request(MethodEnum.GET, url, params=params)
+
+    @access_token_required
+    def get_page_token(self, page_id):
+        pages = self.get_pages()
+        return next((p for p in pages['data'] if p['id'] == page_id), None)
+
+    def get_page_subscribed_apps(self, page_id, token):
+        params = self._get_params(token)
+        url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
+        return self._request(MethodEnum.GET, url, params=params)
+
+    def create_page_subscribed_apps(self, page_id, token):
+        params = self._get_params(token)
+        url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
+        return self._request(MethodEnum.POST, url, params=params)
+
+    def delete_page_subscribed_apps(self, page_id, token):
+        params = self._get_params(token)
+        url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
+        return self._request(MethodEnum.DELETE, url, params=params)
 
     @access_token_required
     def get_ad_account_leadgen_forms(self, page_id):
