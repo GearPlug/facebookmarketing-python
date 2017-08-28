@@ -157,22 +157,106 @@ class Client(object):
 
     @access_token_required
     def get_page_token(self, page_id):
+        """Gets page token for the given page.
+
+        Args:
+            page_id: String with Page's ID.
+
+        Returns:
+
+        """
         pages = self.get_pages()
         return next((p for p in pages['data'] if p['id'] == page_id), None)
 
     def get_page_subscribed_apps(self, page_id, token):
+        """
+
+        Args:
+            page_id:
+            token:
+
+        Returns:
+
+        """
         params = self._get_params(token)
         url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
         return self._request(MethodEnum.GET, url, params=params)
 
     def create_page_subscribed_apps(self, page_id, token):
+        """
+
+        Args:
+            page_id:
+            token:
+
+        Returns:
+
+        """
         params = self._get_params(token)
         url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
         return self._request(MethodEnum.POST, url, params=params)
 
     def delete_page_subscribed_apps(self, page_id, token):
+        """
+
+        Args:
+            page_id:
+            token:
+
+        Returns:
+
+        """
         params = self._get_params(token)
         url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
+        return self._request(MethodEnum.DELETE, url, params=params)
+
+    def get_app_subscriptions(self, token):
+        """
+
+        Args:
+            token:
+
+        Returns:
+
+        """
+        params = self._get_params(token)
+        url = self.BASE_URL + '/{}/subscriptions'.format(self.app_id)
+        return self._request(MethodEnum.GET, url, params=params)
+
+    def create_app_subscriptions(self, object, callback_url, fields, verify_token, token):
+        """
+
+        Args:
+            object:
+            callback_url:
+            fields:
+            verify_token:
+            token:
+
+        Returns:
+
+        """
+        params = self._get_params(token)
+        params.update({
+            'object': object,
+            'callback_url': callback_url,
+            'fields': fields,
+            'verify_token': verify_token
+        })
+        url = self.BASE_URL + '/{}/subscriptions'.format(self.app_id)
+        return self._request(MethodEnum.POST, url, params=params)
+
+    def delete_app_subscriptions(self, token):
+        """
+
+        Args:
+            token:
+
+        Returns:
+
+        """
+        params = self._get_params(token)
+        url = self.BASE_URL + '/{}/subscriptions'.format(self.app_id)
         return self._request(MethodEnum.DELETE, url, params=params)
 
     @access_token_required
@@ -196,14 +280,15 @@ class Client(object):
 
         Args:
             form_id: A string with the Form's ID.
-            from_date: A datetime object.
+            from_date: A timestamp.
 
         Returns:
             A dict.
 
         """
         params = self._get_params()
-        params['from_date'] = from_date.timestamp()
+        if from_date:
+            params['from_date'] = from_date
         url = self.BASE_URL + '/{}/leads'.format(form_id)
         return self._request(MethodEnum.GET, url=url, params=params)
 
