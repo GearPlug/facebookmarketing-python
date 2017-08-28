@@ -3,7 +3,7 @@ import hmac
 import requests
 from facebookmarketing import exception
 from facebookmarketing.decorator import access_token_required
-from facebookmarketing.enumerator import MethodEnum, ErrorEnum
+from facebookmarketing.enumerator import ErrorEnum
 from urllib.parse import urlencode
 
 
@@ -39,8 +39,7 @@ class Client(object):
             'client_secret': self.app_secret,
             'grant_type': 'client_credentials'
         }
-        url = self.BASE_URL + '/oauth/access_token'
-        return self._request(MethodEnum.GET, url, params=params)
+        return self._get('/oauth/access_token', params=params)
 
     def authorization_url(self, redirect_url, scope):
         """Generates an Authorization URL.
@@ -78,8 +77,7 @@ class Client(object):
             'client_secret': self.app_secret,
             'code': code
         }
-        url = self.BASE_URL + '/oauth/access_token'
-        return self._request(MethodEnum.GET, url, params=params)
+        return self._get('/oauth/access_token', params=params)
 
     def extend_token(self, token):
         """Extends a short-lived Token for a long-lived Token.
@@ -97,8 +95,7 @@ class Client(object):
             'client_secret': self.app_secret,
             'fb_exchange_token': token
         }
-        url = self.BASE_URL + '/oauth/access_token'
-        return self._request(MethodEnum.GET, url, params=params)
+        return self._get('/oauth/access_token', params=params)
 
     def inspect_token(self, input_token, token):
         """Inspects an Access Token.
@@ -115,8 +112,7 @@ class Client(object):
             'input_token': input_token,
             'access_token': token
         }
-        url = self.BASE_URL + '/debug_token'
-        return self._request(MethodEnum.GET, url, params=params)
+        return self._get('/debug_token', params=params)
 
     def _get_params(self, token=None):
         _token = token if token else self.access_token
@@ -140,8 +136,7 @@ class Client(object):
 
         """
         params = self._get_params()
-        url = self.BASE_URL + '/me'
-        return self._request(MethodEnum.GET, url, params=params)
+        return self._get('/me', params=params)
 
     @access_token_required
     def get_pages(self):
@@ -152,8 +147,7 @@ class Client(object):
 
         """
         params = self._get_params()
-        url = self.BASE_URL + '/me/accounts'
-        return self._request(MethodEnum.GET, url, params=params)
+        return self._get('/me/accounts', params=params)
 
     @access_token_required
     def get_page_token(self, page_id):
@@ -166,7 +160,10 @@ class Client(object):
 
         """
         pages = self.get_pages()
-        return next((p for p in pages['data'] if p['id'] == page_id), None)
+        page = next((p for p in pages['data'] if p['id'] == page_id), None)
+        if not page:
+            return None
+        return page['access_token']
 
     def get_page_subscribed_apps(self, page_id, token):
         """
@@ -179,8 +176,7 @@ class Client(object):
 
         """
         params = self._get_params(token)
-        url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
-        return self._request(MethodEnum.GET, url, params=params)
+        return self._get('/{}/subscribed_apps'.format(page_id), params=params)
 
     def create_page_subscribed_apps(self, page_id, token):
         """
@@ -193,8 +189,7 @@ class Client(object):
 
         """
         params = self._get_params(token)
-        url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
-        return self._request(MethodEnum.POST, url, params=params)
+        return self._post('/{}/subscribed_apps'.format(page_id), params=params)
 
     def delete_page_subscribed_apps(self, page_id, token):
         """
@@ -207,8 +202,7 @@ class Client(object):
 
         """
         params = self._get_params(token)
-        url = self.BASE_URL + '/{}/subscribed_apps'.format(page_id)
-        return self._request(MethodEnum.DELETE, url, params=params)
+        return self._delete('/{}/subscribed_apps'.format(page_id), params=params)
 
     def get_app_subscriptions(self, token):
         """
@@ -220,8 +214,7 @@ class Client(object):
 
         """
         params = self._get_params(token)
-        url = self.BASE_URL + '/{}/subscriptions'.format(self.app_id)
-        return self._request(MethodEnum.GET, url, params=params)
+        return self._get('/{}/subscriptions'.format(self.app_id), params=params)
 
     def create_app_subscriptions(self, object, callback_url, fields, verify_token, token):
         """
@@ -243,8 +236,7 @@ class Client(object):
             'fields': fields,
             'verify_token': verify_token
         })
-        url = self.BASE_URL + '/{}/subscriptions'.format(self.app_id)
-        return self._request(MethodEnum.POST, url, params=params)
+        return self._post('/{}/subscriptions'.format(self.app_id), params=params)
 
     def delete_app_subscriptions(self, token):
         """
@@ -256,8 +248,7 @@ class Client(object):
 
         """
         params = self._get_params(token)
-        url = self.BASE_URL + '/{}/subscriptions'.format(self.app_id)
-        return self._request(MethodEnum.DELETE, url, params=params)
+        return self._delete('/{}/subscriptions'.format(self.app_id), params=params)
 
     @access_token_required
     def get_ad_account_leadgen_forms(self, page_id):
@@ -271,8 +262,7 @@ class Client(object):
 
         """
         params = self._get_params()
-        url = self.BASE_URL + '/{}/leadgen_forms'.format(page_id)
-        return self._request(MethodEnum.GET, url=url, params=params)
+        return self._get('/{}/leadgen_forms'.format(page_id), params=params)
 
     @access_token_required
     def get_ad_leads(self, form_id, from_date=None):
@@ -289,8 +279,7 @@ class Client(object):
         params = self._get_params()
         if from_date:
             params['from_date'] = from_date
-        url = self.BASE_URL + '/{}/leads'.format(form_id)
-        return self._request(MethodEnum.GET, url=url, params=params)
+        return self._get('/{}/leads'.format(form_id), params=params)
 
     def create_ad_leads(self):
         raise NotImplementedError
@@ -566,8 +555,16 @@ class Client(object):
     # Product
     # Catalog
 
-    def _request(self, method, url, params=None, data=None):
-        response = requests.request(method.value, url, params=params, data=data)
+    def _get(self, endpoint, params=None):
+        response = requests.get(self.BASE_URL + endpoint, params=params)
+        return self._parse(response.json())
+
+    def _post(self, endpoint, params=None, data=None):
+        response = requests.post(self.BASE_URL + endpoint, params=params, data=data)
+        return self._parse(response.json())
+
+    def _delete(self, endpoint, params=None):
+        response = requests.delete(self.BASE_URL + endpoint, params=params)
         return self._parse(response.json())
 
     def _parse(self, response):
