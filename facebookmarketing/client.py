@@ -10,7 +10,7 @@ from urllib.parse import urlencode, urlparse
 class Client(object):
     BASE_URL = 'https://graph.facebook.com/'
 
-    def __init__(self, app_id, app_secret, version):
+    def __init__(self, app_id, app_secret, version='v2.10'):
         self.app_id = app_id
         self.app_secret = app_secret
         if not version.startswith('v'):
