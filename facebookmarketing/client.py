@@ -270,6 +270,20 @@ class Client(object):
         return self._get('/{}/leadgen_forms'.format(page_id), params=params)
 
     @access_token_required
+    def get_leadgen(self, leadgen_id):
+        """
+            Get a single leadgen given an id.
+
+        Args:
+            leadgen_id: A string with the leadgen's ID.
+
+        Returns:
+            A dict.
+        """
+        params = self._get_params()
+        return self._get('/{0}'.format(leadgen_id), params=params)
+
+    @access_token_required
     def get_ad_leads(self, form_id, from_date=None):
         """Gets the leads for the given form.
 
