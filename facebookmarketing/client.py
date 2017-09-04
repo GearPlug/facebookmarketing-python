@@ -13,6 +13,8 @@ class Client(object):
     def __init__(self, app_id, app_secret, version):
         self.app_id = app_id
         self.app_secret = app_secret
+        if not version.startswith('v'):
+            version = 'v'+version
         self.version = version
         self.access_token = None
         self.BASE_URL += self.version
