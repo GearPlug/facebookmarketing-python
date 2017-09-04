@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 from facebookmarketing.client import Client
 from urllib.parse import urlparse, parse_qs
@@ -5,10 +6,10 @@ from urllib.parse import urlparse, parse_qs
 
 class FacebookMarketingTestCases(TestCase):
     def setUp(self):
-        self.app_id = 0
-        self.app_secret = ''
+        self.app_id = os.environ.get('api_id')
+        self.app_secret = os.environ.get('app_secret')
         self.client = Client(self.app_id, self.app_secret, 'v2.10')
-        self.redirect_url = ''
+        self.redirect_url = os.environ.get('redirect_url')
         self.scope = ['manage_pages']
 
     def test_authorization_url(self):

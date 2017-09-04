@@ -4,7 +4,7 @@ import requests
 from facebookmarketing import exception
 from facebookmarketing.decorator import access_token_required
 from facebookmarketing.enumerator import ErrorEnum
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 
 class Client(object):
@@ -229,6 +229,11 @@ class Client(object):
         Returns:
 
         """
+        o = urlparse(callback_url)
+
+        if o.scheme != 'https':
+            raise exception.HttpsRequired
+
         params = self._get_params(token)
         params.update({
             'object': object,
@@ -531,29 +536,18 @@ class Client(object):
         raise NotImplementedError
 
     # TODO Endpoints
-    # Ad
-    # Creative
-    # Ad
-    # Image
-    # Ad
+    # Ad Creative
+    # Image Ad
     # Previews
-    # Ad
-    # Preview
-    # Plugin
-    # Ad
-    # Set
-    # Ad
-    # User
-    # Ad
-    # Video
+    # Ad Preview Plugin
+    # Ad Set
+    # Ad User
+    # Ad Video
     # Campaign
-    # Connection
-    # Objects
+    # Connection Objects
     # Currencies
-    # Image
-    # Crop
-    # Product
-    # Catalog
+    # Image Crop
+    # Product Catalog
 
     def _get(self, endpoint, params=None):
         response = requests.get(self.BASE_URL + endpoint, params=params)

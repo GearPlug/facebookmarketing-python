@@ -6,7 +6,7 @@ class AccessTokenRequired(BaseError):
     pass
 
 
-class UnexpectedError(BaseError):
+class HttpsRequired(BaseError):
     pass
 
 

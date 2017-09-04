@@ -73,26 +73,15 @@ python tests/test_client.py
 ```
 
 ## TODO Endpoints
-- Ad
-- Creative
-- Ad
-- Image
-- Ad
+- Ad Creative
+- Image Ad
 - Previews
-- Ad
-- Preview
-- Plugin
-- Ad
-- Set
-- Ad
-- User
-- Ad
-- Video
+- Ad Preview Plugin
+- Ad Set
+- Ad User
+- Ad Video
 - Campaign
-- Connection
-- Objects
+- Connection Objects
 - Currencies
-- Image
-- Crop
-- Product
-- Catalog
+- Image Crop
+- Product Catalog
