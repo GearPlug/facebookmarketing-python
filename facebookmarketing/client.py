@@ -10,9 +10,11 @@ from urllib.parse import urlencode, urlparse
 class Client(object):
     BASE_URL = 'https://graph.facebook.com/'
 
-    def __init__(self, app_id, app_secret, version):
+    def __init__(self, app_id, app_secret, version='v2.10'):
         self.app_id = app_id
         self.app_secret = app_secret
+        if not version.startswith('v'):
+            version = 'v'+version
         self.version = version
         self.access_token = None
         self.BASE_URL += self.version
@@ -268,6 +270,20 @@ class Client(object):
         """
         params = self._get_params()
         return self._get('/{}/leadgen_forms'.format(page_id), params=params)
+
+    @access_token_required
+    def get_leadgen(self, leadgen_id):
+        """
+            Get a single leadgen given an id.
+
+        Args:
+            leadgen_id: A string with the leadgen's ID.
+
+        Returns:
+            A dict.
+        """
+        params = self._get_params()
+        return self._get('/{0}'.format(leadgen_id), params=params)
 
     @access_token_required
     def get_ad_leads(self, form_id, from_date=None):
