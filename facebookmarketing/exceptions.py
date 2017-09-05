@@ -14,6 +14,10 @@ class UnknownError(BaseError):
     pass
 
 
+class UnexpectedError(BaseError):
+    pass
+
+
 class AppRateLimitError(BaseError):
     pass
 

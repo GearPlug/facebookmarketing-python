@@ -1,9 +1,9 @@
 import hashlib
 import hmac
 import requests
-from facebookmarketing import exception
-from facebookmarketing.decorator import access_token_required
-from facebookmarketing.enumerator import ErrorEnum
+from facebookmarketing import exceptions
+from facebookmarketing.decorators import access_token_required
+from facebookmarketing.enumerators import ErrorEnum
 from urllib.parse import urlencode, urlparse
 
 
@@ -232,7 +232,7 @@ class Client(object):
         o = urlparse(callback_url)
 
         if o.scheme != 'https':
-            raise exception.HttpsRequired
+            raise exceptions.HttpsRequired
 
         params = self._get_params(token)
         params.update({
@@ -575,26 +575,26 @@ class Client(object):
             try:
                 error_enum = ErrorEnum(code)
             except Exception:
-                raise exception.UnexpectedError('Error: {}. Message {}'.format(code, message))
+                raise exceptions.UnexpectedError('Error: {}. Message {}'.format(code, message))
             if error_enum == ErrorEnum.UnknownError:
-                raise exception.UnknownError(message)
+                raise exceptions.UnknownError(message)
             elif error_enum == ErrorEnum.AppRateLimit:
-                raise exception.AppRateLimitError(message)
+                raise exceptions.AppRateLimitError(message)
             elif error_enum == ErrorEnum.AppPermissionRequired:
-                raise exception.AppPermissionRequiredError(message)
+                raise exceptions.AppPermissionRequiredError(message)
             elif error_enum == ErrorEnum.UserRateLimit:
-                raise exception.UserRateLimitError(message)
+                raise exceptions.UserRateLimitError(message)
             elif error_enum == ErrorEnum.InvalidParameter:
-                raise exception.InvalidParameterError(message)
+                raise exceptions.InvalidParameterError(message)
             elif error_enum == ErrorEnum.SessionKeyInvalid:
-                raise exception.SessionKeyInvalidError(message)
+                raise exceptions.SessionKeyInvalidError(message)
             elif error_enum == ErrorEnum.IncorrectPermission:
-                raise exception.IncorrectPermissionError(message)
+                raise exceptions.IncorrectPermissionError(message)
             elif error_enum == ErrorEnum.InvalidOauth20AccessToken:
-                raise exception.PermissionError(message)
+                raise exceptions.PermissionError(message)
             elif error_enum == ErrorEnum.ExtendedPermissionRequired:
-                raise exception.ExtendedPermissionRequiredError(message)
+                raise exceptions.ExtendedPermissionRequiredError(message)
             else:
-                raise exception.BaseError('Error: {}. Message {}'.format(code, message))
+                raise exceptions.BaseError('Error: {}. Message {}'.format(code, message))
 
         return response

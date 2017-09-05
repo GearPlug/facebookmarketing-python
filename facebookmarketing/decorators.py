@@ -1,4 +1,4 @@
-from facebookmarketing.exception import AccessTokenRequired
+from facebookmarketing.exceptions import AccessTokenRequired
 from functools import wraps
 
 
