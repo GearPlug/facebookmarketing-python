@@ -159,7 +159,7 @@ class Client(object):
             page_id: String with Page's ID.
 
         Returns:
-
+            dict
         """
         pages = self.get_pages()
         page = next((p for p in pages['data'] if p['id'] == page_id), None)
@@ -206,7 +206,7 @@ class Client(object):
         params = self._get_params(token)
         return self._delete('/{}/subscribed_apps'.format(page_id), params=params)
 
-    def get_app_subscriptions(self, token):
+    def get_app_subscriptions(self, application_token):
         """
 
         Args:
@@ -215,7 +215,7 @@ class Client(object):
         Returns:
 
         """
-        params = self._get_params(token)
+        params = self._get_params(application_token)
         return self._get('/{}/subscriptions'.format(self.app_id), params=params)
 
     def create_app_subscriptions(self, object, callback_url, fields, verify_token, token):
