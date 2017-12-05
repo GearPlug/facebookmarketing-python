@@ -142,7 +142,7 @@ class Client(object):
 
     @access_token_required
     def get_pages(self):
-        """Gets the authed account pages.
+        """Gets tge authed account pages.
 
         Returns:
             A dict.
