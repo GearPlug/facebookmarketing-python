@@ -258,7 +258,7 @@ class Client(object):
         return self._delete('/{}/subscriptions'.format(self.app_id), params=params)
 
     @access_token_required
-    def get_ad_account_leadgen_forms(self, page_id):
+    def get_ad_account_leadgen_forms(self, page_id, page_access_token=None):
         """Gets the forms for the given page.
 
         Args:
@@ -268,7 +268,7 @@ class Client(object):
             A dict.
 
         """
-        params = self._get_params()
+        params = self._get_params(token=page_access_token)
         return self._get('/{}/leadgen_forms'.format(page_id), params=params)
 
     @access_token_required
