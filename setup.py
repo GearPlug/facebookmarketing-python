@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='facebookmarketing',
+setup(name='facebookmarketing-python',
       version='0.1',
       description='API wrapper for Facebook written in Python',
       url='https://github.com/GearPlug/facebookmarketing-python',

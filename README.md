@@ -4,7 +4,7 @@ facebookmarketing is an API wrapper for Facebook written in Python
 
 ## Installing
 ```
-pip install git+git://github.com/GearPlug/facebookmarketing-python.git
+pip install facebookmarketing-python
 ```
 
 ## Usage
