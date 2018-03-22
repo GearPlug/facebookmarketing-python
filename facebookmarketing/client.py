@@ -149,7 +149,15 @@ class Client(object):
 
         """
         params = self._get_params()
-        return self._get('/me/accounts', params=params)
+
+        new_result = self._get('/me/accounts', params=params)
+        del params['access_token'] # Las urls siguiente ya incluyen el access token, pero no el proof.
+        page_list = new_result['data']
+        while 'paging' in new_result and 'next' in new_result['paging']:
+            # La URL de next incluye el base, lo cambiamos a ''.
+            new_result = self._get(new_result['paging']['next'].replace(self.BASE_URL, ''), params=params)
+            page_list += new_result['data']
+        return {'data':page_list} # Se retorna un dict con el key data para mantener compatibilidad.
 
     @access_token_required
     def get_page_token(self, page_id):
@@ -566,6 +574,8 @@ class Client(object):
     # Product Catalog
 
     def _get(self, endpoint, params=None):
+        if self.BASE_URL in endpoint:
+            raise Exception("The endpoint must not contain the facebook base URL.")
         response = requests.get(self.BASE_URL + endpoint, params=params)
         return self._parse(response.json())
 
