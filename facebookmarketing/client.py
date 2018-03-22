@@ -277,7 +277,14 @@ class Client(object):
 
         """
         params = self._get_params(token=page_access_token)
-        return self._get('/{}/leadgen_forms'.format(page_id), params=params)
+        new_result = self._get('/{}/leadgen_forms'.format(page_id), params=params)
+        del params['access_token'] # Las urls siguiente ya incluyen el access token, pero no el proof.
+        form_list = new_result['data']
+        while 'paging' in new_result and 'next' in new_result['paging']:
+            # La URL de next incluye el base, lo cambiamos a ''.
+            new_result = self._get(new_result['paging']['next'].replace(self.BASE_URL, ''), params=params)
+            form_list += new_result['data']
+        return {'data':form_list}
 
     @access_token_required
     def get_leadgen(self, leadgen_id):
