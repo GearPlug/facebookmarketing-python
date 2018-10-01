@@ -301,7 +301,7 @@ class Client(object):
         return self._get('/{0}'.format(leadgen_id), params=params)
 
     @access_token_required
-    def get_ad_leads(self, form_id, from_date=None):
+    def get_ad_leads(self, form_id, from_date=None, after=None):
         """Gets the leads for the given form.
 
         Args:
@@ -315,6 +315,8 @@ class Client(object):
         params = self._get_params()
         if from_date:
             params['from_date'] = from_date
+        if after is not None:
+            params['after'] =  after
         return self._get('/{}/leads'.format(form_id), params=params)
 
     def create_ad_leads(self):
