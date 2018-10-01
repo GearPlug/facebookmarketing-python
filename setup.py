@@ -7,7 +7,7 @@ def read(fname):
 
 
 setup(name='facebookmarketing-python',
-      version='0.1.2',
+      version='0.1.3',
       description='API wrapper for Facebook written in Python',
       long_description=read('README.md'),
       url='https://github.com/GearPlug/facebookmarketing-python',
