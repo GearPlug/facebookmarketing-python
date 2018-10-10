@@ -1,10 +1,12 @@
 import hashlib
 import hmac
+
 import requests
+from urllib.parse import urlencode, urlparse
+
 from facebookmarketing import exceptions
 from facebookmarketing.decorators import access_token_required
 from facebookmarketing.enumerators import ErrorEnum
-from urllib.parse import urlencode, urlparse
 
 
 class Client(object):
@@ -14,7 +16,7 @@ class Client(object):
         self.app_id = app_id
         self.app_secret = app_secret
         if not version.startswith('v'):
-            version = 'v'+version
+            version = 'v' + version
         self.version = version
         self.access_token = None
         self.BASE_URL += self.version
@@ -151,13 +153,13 @@ class Client(object):
         params = self._get_params()
 
         new_result = self._get('/me/accounts', params=params)
-        del params['access_token'] # Las urls siguiente ya incluyen el access token, pero no el proof.
+        del params['access_token']  # Las urls siguiente ya incluyen el access token, pero no el proof.
         page_list = new_result['data']
         while 'paging' in new_result and 'next' in new_result['paging']:
             # La URL de next incluye el base, lo cambiamos a ''.
             new_result = self._get(new_result['paging']['next'].replace(self.BASE_URL, ''), params=params)
             page_list += new_result['data']
-        return {'data':page_list} # Se retorna un dict con el key data para mantener compatibilidad.
+        return {'data': page_list}  # Se retorna un dict con el key data para mantener compatibilidad.
 
     @access_token_required
     def get_page_token(self, page_id):
@@ -278,13 +280,13 @@ class Client(object):
         """
         params = self._get_params(token=page_access_token)
         new_result = self._get('/{}/leadgen_forms'.format(page_id), params=params)
-        del params['access_token'] # Las urls siguiente ya incluyen el access token, pero no el proof.
+        del params['access_token']  # Las urls siguiente ya incluyen el access token, pero no el proof.
         form_list = new_result['data']
         while 'paging' in new_result and 'next' in new_result['paging']:
             # La URL de next incluye el base, lo cambiamos a ''.
             new_result = self._get(new_result['paging']['next'].replace(self.BASE_URL, ''), params=params)
             form_list += new_result['data']
-        return {'data':form_list}
+        return {'data': form_list}
 
     @access_token_required
     def get_leadgen(self, leadgen_id):
@@ -301,12 +303,14 @@ class Client(object):
         return self._get('/{0}'.format(leadgen_id), params=params)
 
     @access_token_required
-    def get_ad_leads(self, form_id, from_date=None, after=None):
+    def get_ad_leads(self, form_id, from_date=None, to_date=None, after=None):
         """Gets the leads for the given form.
 
         Args:
             form_id: A string with the Form's ID.
             from_date: A timestamp.
+            to_date: A timestamp.
+            after: A cursor.
 
         Returns:
             A dict.
@@ -315,8 +319,10 @@ class Client(object):
         params = self._get_params()
         if from_date:
             params['from_date'] = from_date
-        if after is not None:
-            params['after'] =  after
+        if to_date:
+            params['to_date'] = to_date
+        if after:
+            params['after'] = after
         return self._get('/{}/leads'.format(form_id), params=params)
 
     def create_ad_leads(self):
