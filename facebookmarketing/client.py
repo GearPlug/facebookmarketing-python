@@ -325,6 +325,42 @@ class Client(object):
             params['after'] = after
         return self._get('/{}/leads'.format(form_id), params=params)
 
+
+    def get_custom_audience(self, id_account):
+        """Get audiences for account_id
+
+        :param account_id: Id for buissnes Id (get_account)
+
+        :return: a Dict
+        """
+
+        params = self._get_params()
+        params['fields'] = [ 'name']
+        return self._get('/act_{}/customaudiences'.format(id_account),  params=params)
+
+    def get_data_source_custom_audience(self, id_account):
+        """Get audiences for account_id
+
+        :param account_id: Id for buissnes Id (get_account)
+
+        :return: a Dict
+        """
+        params = self._get_params()
+        params['fields'] = ['data_source']
+        return self._get('/act_{}/customaudiences'.format(id_account),  params=params)
+
+
+    def get_adaccounts_id(self):
+        """Get AdAccount for id user logged 
+        
+
+        :return: a Dict
+        """
+
+        params = self._get_params()
+        params['fields'] = ['name']
+        return self._get('/me/adaccounts', params=params)
+
     def create_ad_leads(self):
         raise NotImplementedError
 
