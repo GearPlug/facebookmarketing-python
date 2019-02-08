@@ -12,7 +12,7 @@ from facebookmarketing.enumerators import ErrorEnum
 class Client(object):
     BASE_URL = 'https://graph.facebook.com/'
 
-    def __init__(self, app_id, app_secret, version='v2.10'):
+    def __init__(self, app_id, app_secret, version='v2.10', requests_hooks=None):
         self.app_id = app_id
         self.app_secret = app_secret
         if not version.startswith('v'):
@@ -20,6 +20,10 @@ class Client(object):
         self.version = version
         self.access_token = None
         self.BASE_URL += self.version
+        if requests_hooks and not isinstance(requests_hooks, dict):
+            raise Exception(
+                'requests_hooks must be a dict. e.g. {"response": func}. http://docs.python-requests.org/en/master/user/advanced/#event-hooks')
+        self.requests_hooks = requests_hooks
 
     def set_access_token(self, token):
         """Sets the Access Token for its use in this library.
@@ -325,7 +329,6 @@ class Client(object):
             params['after'] = after
         return self._get('/{}/leads'.format(form_id), params=params)
 
-
     def get_custom_audience(self, id_account):
         """Get audiences for account_id
 
@@ -335,8 +338,8 @@ class Client(object):
         """
 
         params = self._get_params()
-        params['fields'] = [ 'name']
-        return self._get('/act_{}/customaudiences'.format(id_account),  params=params)
+        params['fields'] = ['name']
+        return self._get('/act_{}/customaudiences'.format(id_account), params=params)
 
     def get_data_source_custom_audience(self, id_account):
         """Get audiences for account_id
@@ -347,12 +350,11 @@ class Client(object):
         """
         params = self._get_params()
         params['fields'] = ['data_source']
-        return self._get('/act_{}/customaudiences'.format(id_account),  params=params)
-
+        return self._get('/act_{}/customaudiences'.format(id_account), params=params)
 
     def get_adaccounts_id(self):
-        """Get AdAccount for id user logged 
-        
+        """Get AdAccount for id user logged
+
 
         :return: a Dict
         """
@@ -624,25 +626,36 @@ class Client(object):
     # Image Crop
     # Product Catalog
 
-    def _get(self, endpoint, params=None):
-        if self.BASE_URL in endpoint:
-            raise Exception("The endpoint must not contain the facebook base URL.")
-        response = requests.get(self.BASE_URL + endpoint, params=params)
-        return self._parse(response.json())
+    def _get(self, endpoint, **kwargs):
+        return self._request('GET', endpoint, **kwargs)
 
-    def _post(self, endpoint, params=None, data=None):
-        response = requests.post(self.BASE_URL + endpoint, params=params, data=data)
-        return self._parse(response.json())
+    def _post(self, endpoint, **kwargs):
+        return self._request('POST', endpoint, **kwargs)
 
-    def _delete(self, endpoint, params=None):
-        response = requests.delete(self.BASE_URL + endpoint, params=params)
-        return self._parse(response.json())
+    def _delete(self, endpoint, **kwargs):
+        return self._request('DELETE', endpoint, **kwargs)
+
+    def _request(self, method, endpoint, headers=None, **kwargs):
+        _headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+        if headers:
+            _headers.update(headers)
+        if self.requests_hooks:
+            kwargs.update({'hooks': self.requests_hooks})
+        return self._parse(requests.request(method, self.BASE_URL + endpoint, headers=_headers, **kwargs))
 
     def _parse(self, response):
-        if 'error' in response:
-            error = response['error']
-        elif 'data' in response and 'error' in response['data']:
-            error = response['data']['error']
+        if 'application/json' in response.headers['Content-Type']:
+            r = response.json()
+        else:
+            return response.text
+
+        if 'error' in r:
+            error = r['error']
+        elif 'data' in r and 'error' in r['data']:
+            error = r['data']['error']
         else:
             error = None
 
@@ -674,4 +687,4 @@ class Client(object):
             else:
                 raise exceptions.BaseError('Error: {}. Message {}'.format(code, message))
 
-        return response
+        return r
