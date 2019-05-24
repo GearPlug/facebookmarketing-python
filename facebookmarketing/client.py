@@ -1,8 +1,8 @@
 import hashlib
 import hmac
+from urllib.parse import urlencode, urlparse
 
 import requests
-from urllib.parse import urlencode, urlparse
 
 from facebookmarketing import exceptions
 from facebookmarketing.decorators import access_token_required
@@ -329,38 +329,30 @@ class Client(object):
             params['after'] = after
         return self._get('/{}/leads'.format(form_id), params=params)
 
-    def get_custom_audience(self, id_account):
-        """Get audiences for account_id
-
-        :param account_id: Id for buissnes Id (get_account)
-
-        :return: a Dict
+    def get_custom_audience(self, account_id, fields=None):
         """
 
-        params = self._get_params()
-        params['fields'] = ['name']
-        return self._get('/act_{}/customaudiences'.format(id_account), params=params)
+        Args:
+            account_id:
+            fields:
 
-    def get_data_source_custom_audience(self, id_account):
-        """Get audiences for account_id
+        Returns:
 
-        :param account_id: Id for buissnes Id (get_account)
-
-        :return: a Dict
         """
         params = self._get_params()
-        params['fields'] = ['data_source']
-        return self._get('/act_{}/customaudiences'.format(id_account), params=params)
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
+        return self._get('/{}/customaudiences'.format(account_id), params=params)
 
-    def get_adaccounts_id(self):
-        """Get AdAccount for id user logged
-
-
-        :return: a Dict
+    def get_adaccounts_id(self, fields=None):
         """
 
+        Returns:
+
+        """
         params = self._get_params()
-        params['fields'] = ['name']
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
         return self._get('/me/adaccounts', params=params)
 
     def create_ad_leads(self):
