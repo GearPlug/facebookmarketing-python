@@ -194,18 +194,21 @@ class Client(object):
         params = self._get_params(token)
         return self._get('/{}/subscribed_apps'.format(page_id), params=params)
 
-    def create_page_subscribed_apps(self, page_id, token):
+    def create_page_subscribed_apps(self, page_id, token, params=None):
         """
 
         Args:
             page_id:
             token:
+            params:
 
         Returns:
 
         """
-        params = self._get_params(token)
-        return self._post('/{}/subscribed_apps'.format(page_id), params=params)
+        _params = self._get_params(token)
+        if params and isinstance(params, dict):
+            _params.update(params)
+        return self._post('/{}/subscribed_apps'.format(page_id), params=_params)
 
     def delete_page_subscribed_apps(self, page_id, token):
         """
