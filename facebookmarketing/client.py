@@ -12,7 +12,7 @@ from facebookmarketing.enumerators import ErrorEnum
 class Client(object):
     BASE_URL = 'https://graph.facebook.com/'
 
-    def __init__(self, app_id, app_secret, version='v2.10', requests_hooks=None):
+    def __init__(self, app_id, app_secret, version='v3.3', requests_hooks=None):
         self.app_id = app_id
         self.app_secret = app_secret
         if not version.startswith('v'):
@@ -49,30 +49,38 @@ class Client(object):
         }
         return self._get('/oauth/access_token', params=params)
 
-    def authorization_url(self, redirect_url, scope):
+    def authorization_url(self, redirect_uri, state, scope=None):
         """Generates an Authorization URL.
 
         Args:
-            redirect_url: A string with the redirect_url set in the app config.
+            redirect_uri: A string with the redirect_url set in the app config.
+            state:
             scope: A sequence of strings with the scopes.
 
         Returns:
             A string.
 
         """
+        if scope is None:
+            scope = []
+        if not isinstance(scope, list):
+            raise Exception('scope argument must be a list')
+
         params = {
             'client_id': self.app_id,
-            'redirect_uri': redirect_url,
-            'scope': ' '.join(scope)
+            'redirect_uri': redirect_uri,
+            'state': state,
+            'scope': ' '.join(scope),
+            'response_type': 'code'
         }
-        url = 'https://facebook.com/dialog/oauth?' + urlencode(params)
+        url = 'https://facebook.com/{}/dialog/oauth?'.format(self.version) + urlencode(params)
         return url
 
-    def exchange_code(self, redirect_url, code):
+    def exchange_code(self, redirect_uri, code):
         """Exchanges a code for a Token.
 
         Args:
-            redirect_url: A string with the redirect_url set in the app config.
+            redirect_uri: A string with the redirect_url set in the app config.
             code: A string containing the code to exchange.
 
         Returns:
@@ -81,7 +89,7 @@ class Client(object):
         """
         params = {
             'client_id': self.app_id,
-            'redirect_uri': redirect_url,
+            'redirect_uri': redirect_uri,
             'client_secret': self.app_secret,
             'code': code
         }
@@ -357,6 +365,105 @@ class Client(object):
         if fields and isinstance(fields, list):
             params['fields'] = ','.join(fields)
         return self._get('/me/adaccounts', params=params)
+
+    def get_instagram(self, page_id, fields=None):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
+        return self._get('/{}'.format(page_id), params=params)
+
+    def get_instagram_media(self, page_id, fields=None):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
+        return self._get('/{}/media'.format(page_id), params=params)
+
+    def get_instagram_media_object(self, media_id, fields=None):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
+        return self._get('/{}'.format(media_id), params=params)
+
+    def get_instagram_media_comment(self, media_id):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        return self._get('/{}/comments'.format(media_id), params=params)
+
+    def get_instagram_hashtag(self, page_id, fields=None):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
+        return self._get('/{}/media'.format(page_id), params=params)
+
+    def get_instagram_hashtag_search(self, user_id, query):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        params['user_id'] = user_id
+        params['q'] = query
+        return self._get('/ig_hashtag_search', params=params)
+
+    def get_instagram_hashtag_object(self, hashtag_id, fields=None):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
+        return self._get('/{}'.format(hashtag_id), params=params)
+
+    def get_instagram_hashtag_recent_media(self, hashtag_id, user_id, fields=None):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        params['user_id'] = user_id
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
+        return self._get('/{}/recent_media'.format(hashtag_id), params=params)
+
+    def get_instagram_hashtag_top_media(self, hashtag_id, user_id, fields=None):
+        """
+
+        Returns:
+
+        """
+        params = self._get_params()
+        params['user_id'] = user_id
+        if fields and isinstance(fields, list):
+            params['fields'] = ','.join(fields)
+        return self._get('/{}/top_media'.format(hashtag_id), params=params)
 
     def create_ad_leads(self):
         raise NotImplementedError
