@@ -28,19 +28,19 @@ url = client.authorization_url('REDIRECT_URL', 'STATE', ['manage_pages', 'leads_
 #### Exchange the code for an access token
 ```
 response = client.exchange_code('REDIRECT_URL', 'CODE')
-access_token = response['access_token]
+access_token = response['access_token']
 ```
 
 #### Extend a short-lived access token for a long-lived access token
 ```
 response = client.extend_token(access_token)  # From previous step
-access_token = response['access_token]
+access_token = response['access_token']
 ```
 
 #### Get app token
 ```
 response = client.get_app_token()
-app_access_token = response['access_token]
+app_access_token = response['access_token']
 ```
 
 #### Inspect a token
@@ -94,8 +94,7 @@ response = client.get_leadgen('LEADGEN_ID')
 
 For more information: https://developers.facebook.com/docs/graph-api/webhooks
 
-The following methods cover Step 2 and 4 of the Webhook lead retrieval guide:
-Webhooks: https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/
+The following methods cover Step 2 and 4 of the Webhook lead retrieval guide: https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/
 
 #### Create a webhook for leads retrieval
 ```
@@ -125,7 +124,7 @@ url = client.authorization_url('REDIRECT_URL', 'STATE', ['instagram_basic', 'pag
 #### Exchange the code for an access token
 ```
 response = client.exchange_code('REDIRECT_URL', 'CODE')
-access_token = response['access_token]
+access_token = response['access_token']
 ```
 
 ### Page
