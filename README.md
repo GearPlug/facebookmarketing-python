@@ -13,7 +13,7 @@ pip install facebookmarketing-python
 ```
 from facebookmarketing.client import Client
 
-client = Client('APP_ID', 'APP_SECRET', 'v4.0')
+client = Client('APP_ID', 'APP_SECRET', 'v5.0')
 ```
 
 ### OAuth 2.0
@@ -59,17 +59,17 @@ For more information: https://developers.facebook.com/docs/graph-api/reference/u
 
 #### Get account information
 ```
-response = client.get_account()
+response = client.user.get_account()
 ```
 
 #### Get account pages
 ```
-response = client.get_pages()
+response = client.user.get_pages()
 ```
 
 #### Get page token
 ```
-page_access_token = client.get_page_token('PAGE_ID')  # From previous step
+page_access_token = client.user.get_page_token('PAGE_ID')  # From previous step
 ```
 
 ### Page
@@ -78,16 +78,17 @@ For more information: https://developers.facebook.com/docs/graph-api/reference/p
 
 #### Get lead generation forms given the page
 ```
-response = client.get_ad_account_leadgen_forms('PAGE_ID', page_access_token)  # From previous step
+response = client.page.get_ad_account_leadgen_forms('PAGE_ID', page_access_token)  # From previous step
 ```
+
 #### Get leads info given the lead generation form
 ```
-response = client.get_ad_leads('LEADGEN_FORM_ID')
+response = client.marketing.get_ad_leads('LEADGEN_FORM_ID')
 ```
 
 #### Get a sigle lead info
 ```
-response = client.get_leadgen('LEADGEN_ID')
+response = client.marketing.get_leadgen('LEADGEN_ID')
 ```
 
 ### Webhooks
@@ -98,9 +99,9 @@ The following methods cover Step 2 and 4 of the Webhook lead retrieval guide: ht
 
 #### Create a webhook for leads retrieval
 ```
-response = client.create_app_subscriptions('page', 'callback_url', 'leadgen', 'abc123', app_access_token)  # You get app_access_token from get_app_token() method
+response = client.application.create_app_subscriptions('PAGE_ID', 'callback_url', 'leadgen', 'abc123', app_access_token)  # You get app_access_token from get_app_token() method
 
-response = client.create_page_subscribed_apps('PAGE_ID', page_access_token, params={'subscribed_fields': 'leadgen'})  # You get page_access_token from get_page_token() method
+response = client.page.create_page_subscribed_apps('PAGE_ID', page_access_token, params={'subscribed_fields': 'leadgen'})  # You get page_access_token from get_page_token() method
 ```
 
 ## Instagram Usage
@@ -109,7 +110,7 @@ response = client.create_page_subscribed_apps('PAGE_ID', page_access_token, para
 ```
 from facebookmarketing.client import Client
 
-client = Client('APP_ID', 'APP_SECRET', 'v4.0')
+client = Client('APP_ID', 'APP_SECRET', 'v5.0')
 ```
 
 ### OAuth 2.0
@@ -131,7 +132,7 @@ access_token = response['access_token']
 
 #### Get page id
 ```
-response = client.get_instagram(page_id, ['instagram_business_account'])
+response = client.instagram.get_page(page_id, ['instagram_business_account'])
 page_id = response['instagram_business_account']['id']
 ```
 
@@ -139,29 +140,29 @@ page_id = response['instagram_business_account']['id']
 
 #### Get media
 ```
-response = client.get_instagram_media(page_id)
+response = client.instagram.get_page_media(page_id)
 ```
 
 #### Get media object
 ```
-response = client.get_instagram_media_object(media_id, fields=['id','media_type','media_url','owner','timestamp'])
+response = client.instagram.get_media_object(media_id, fields=['id','media_type','media_url','owner','timestamp'])
 ```
 
 ### Hashtag
 
 #### Search hashtag
 ```
-response = (client.get_instagram_hashtag_search(page_id, 'coke'))
+response = client.instagram.get_hashtag_search(page_id, 'coke')
 ```
 
 #### Get hashtag object
 ```
-response = client.get_instagram_hashtag_object(hashtag_id, fields=['id', 'name']) 
+response = client.instagram.get_hashtag_object(hashtag_id, fields=['id', 'name']) 
 ```
 
 #### Get hashtag top media
 ```
-response = client.get_instagram_hashtag_top_media(hashtag_id, instagram_id, ['id','media_type','comments_count','like_count', 'caption'])
+response = client.instagram.get_hashtag_top_media(hashtag_id, instagram_id, ['id','media_type','comments_count','like_count', 'caption'])
 ```
 
 ## Requirements
