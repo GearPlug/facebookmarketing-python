@@ -222,3 +222,11 @@ class Client(object):
             else:
                 raise exceptions.BaseError('Error: {}. Message {}'.format(code, message))
         return r
+
+    def get_unpaginated_result(self, url, request_params):
+        result = self._get(url, params=request_params)
+        accumulated_result = result['data']
+        while 'paging' in result and 'next' in result['paging']:
+            result = self._get(result['paging']['next'].replace(self.BASE_URL, ''), params=request_params)
+            accumulated_result += result['data']
+        return {'data': accumulated_result, 'paging': {}}

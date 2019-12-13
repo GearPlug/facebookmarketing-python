@@ -88,7 +88,7 @@ class Page(object):
         return {'data': form_list}
 
     @access_token_required
-    def get_page_feed(self, page_id):
+    def get_page_feed(self, page_id, paginate=True):
         """
         https://developers.facebook.com/docs/graph-api/reference/v5.0/page/feed
 
@@ -96,4 +96,6 @@ class Page(object):
 
         """
         params = self._client._get_params()
+        if not paginate:
+            return self._client.get_unpaginated_result('/{}/feed'.format(page_id), params)
         return self._client._get('/{}/feed'.format(page_id), params=params)
