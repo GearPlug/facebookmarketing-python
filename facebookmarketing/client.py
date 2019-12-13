@@ -168,7 +168,7 @@ class Client(object):
     def _delete(self, endpoint, **kwargs):
         return self._request('DELETE', endpoint, **kwargs)
 
-    def _request(self, method, endpoint, headers=None, **kwargs):
+    def _request(self, method, endpoint, headers=None, parse_response=True, **kwargs):
         _headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -177,10 +177,11 @@ class Client(object):
             _headers.update(headers)
         if self.requests_hooks:
             kwargs.update({'hooks': self.requests_hooks})
+        if not parse_response:
+            return requests.request(method, self.BASE_URL + endpoint, headers=_headers, **kwargs)
         return self._parse(requests.request(method, self.BASE_URL + endpoint, headers=_headers, **kwargs))
 
     def _parse(self, response):
-        print(response.request.url)
         if 'application/json' in response.headers['Content-Type']:
             r = response.json()
         else:
@@ -220,5 +221,4 @@ class Client(object):
                 raise exceptions.ExtendedPermissionRequiredError(message)
             else:
                 raise exceptions.BaseError('Error: {}. Message {}'.format(code, message))
-
         return r
