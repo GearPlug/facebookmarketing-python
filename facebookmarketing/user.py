@@ -6,7 +6,7 @@ class User(object):
         self._client = client
 
     @access_token_required
-    def get_account(self):
+    def get_account(self, user_id='me', fields=None):
         """
         Gets a User.
 
@@ -16,7 +16,16 @@ class User(object):
 
         """
         params = self._client._get_params()
-        return self._client._get('/me', params=params)
+        if fields is not None:
+            if isinstance(fields, list):
+                params['fields'] = ','.join(fields)
+            elif isinstance(fields, str):
+                params['fields'] = fields
+            return self._client._get('/{}'.format(user_id), params=params)
+        return self._client._get('/{}'.format(user_id), params=params)
+
+    def get_user(self, *args, **kwargs):
+        return self.get_account(*args, **kwargs)
 
     @access_token_required
     def get_pages(self):
@@ -56,21 +65,7 @@ class User(object):
 
         return page['access_token']
 
-    def get_user(self, user_id, fields=None, page_access_token=None):
-        """
-        Gets a User.
-
-        https://developers.facebook.com/docs/graph-api/reference/user/
-
-        Returns:
-
-        """
-        params = self._client._get_params(page_access_token)
-        if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._client._get('/{}'.format(user_id), params=params)
-
-    def get_user_picture(self, user_id, fields=None, page_access_token=None):
+    def get_user_picture(self, user_id='me', fields=None, page_access_token=None):
         """
         https://developers.facebook.com/docs/graph-api/reference/user/picture/
 
@@ -81,4 +76,5 @@ class User(object):
         if fields and isinstance(fields, list):
             params['fields'] = ','.join(fields)
         params['type'] = 'large'
-        return self._client._get('/{}/picture'.format(user_id), params=params)
+        response = self._client._get('/{}/picture'.format(user_id), params=params, parse_response=False)
+        return response.content
