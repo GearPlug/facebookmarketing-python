@@ -22,25 +22,25 @@ For more information: https://developers.facebook.com/docs/facebook-login/manual
 
 #### Get authorization url
 ```
-url = client.authorization_url('REDIRECT_URL', 'STATE', ['manage_pages', 'leads_retrieval'])
+url = client.authorization_url('REDIRECT_URL', 'STATE', ['pages_manage_ads', 'pages_manage_metadata', 'pages_read_engagement', 'leads_retrieval'])
 ```
 
 #### Exchange the code for an access token
 ```
 response = client.exchange_code('REDIRECT_URL', 'CODE')
-access_token = response['access_token]
+access_token = response['access_token']
 ```
 
 #### Extend a short-lived access token for a long-lived access token
 ```
 response = client.extend_token(access_token)  # From previous step
-access_token = response['access_token]
+access_token = response['access_token']
 ```
 
 #### Get app token
 ```
 response = client.get_app_token()
-app_access_token = response['access_token]
+app_access_token = response['access_token']
 ```
 
 #### Inspect a token
@@ -110,7 +110,7 @@ response = client.create_page_subscribed_apps('PAGE_ID', page_access_token, para
 ```
 from facebookmarketing.client import Client
 
-client = Client('APP_ID', 'APP_SECRET', 'v4.0')
+client = Client('APP_ID', 'APP_SECRET', 'v12.0')
 ```
 
 ### OAuth 2.0
@@ -125,7 +125,7 @@ url = client.authorization_url('REDIRECT_URL', 'STATE', ['instagram_basic', 'pag
 #### Exchange the code for an access token
 ```
 response = client.exchange_code('REDIRECT_URL', 'CODE')
-access_token = response['access_token]
+access_token = response['access_token']
 ```
 
 ### Page

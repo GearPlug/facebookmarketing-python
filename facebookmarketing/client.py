@@ -12,7 +12,7 @@ from facebookmarketing.enumerators import ErrorEnum
 class Client(object):
     BASE_URL = 'https://graph.facebook.com/'
 
-    def __init__(self, app_id, app_secret, version='v3.3', requests_hooks=None):
+    def __init__(self, app_id, app_secret, version='v12.0', requests_hooks=None):
         self.app_id = app_id
         self.app_secret = app_secret
         if not version.startswith('v'):
@@ -184,7 +184,7 @@ class Client(object):
             dict
         """
         pages = self.get_pages()
-        page = next((p for p in pages['data'] if p['id'] == page_id), None)
+        page = next((p for p in pages['data'] if p['id'] == str(page_id)), None)
         if not page:
             return None
         return page['access_token']
