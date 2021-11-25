@@ -2,6 +2,7 @@ import hashlib
 import hmac
 from hashlib import sha256
 from urllib.parse import urlencode, urlparse
+from uuid import uuid4
 
 import requests
 
@@ -13,13 +14,16 @@ from facebookmarketing.enumerators import ErrorEnum
 class Client(object):
     BASE_URL = "https://graph.facebook.com/"
 
-    def __init__(self, app_id, app_secret, version="v12.0", requests_hooks=None):
+    def __init__(
+        self, app_id: str, app_secret: str, version: str = "v12.0", requests_hooks: dict = None, paginate: bool = True
+    ) -> None:
         self.app_id = app_id
         self.app_secret = app_secret
         if not version.startswith("v"):
             version = "v" + version
         self.version = version
         self.access_token = None
+        self.paginate = paginate
         self.BASE_URL += self.version
         if requests_hooks and not isinstance(requests_hooks, dict):
             raise Exception(
@@ -121,16 +125,6 @@ class Client(object):
         params = {"input_token": input_token, "access_token": token}
         return self._get("/debug_token", params=params)
 
-    def _get_params(self, token=None):
-        _token = token if token else self.access_token
-        return {"access_token": _token, "appsecret_proof": self._get_app_secret_proof(_token)}
-
-    def _get_app_secret_proof(self, token):
-        key = self.app_secret.encode("utf-8")
-        msg = token.encode("utf-8")
-        h = hmac.new(key, msg=msg, digestmod=hashlib.sha256)
-        return h.hexdigest()
-
     @access_token_required
     def get_account(self) -> dict:
         """Gets the authed account information.
@@ -149,15 +143,7 @@ class Client(object):
             dict: Pages data.
         """
         params = self._get_params()
-
-        new_result = self._get("/me/accounts", params=params)
-        del params["access_token"]  # Las urls siguiente ya incluyen el access token, pero no el proof.
-        page_list = new_result["data"]
-        while "paging" in new_result and "next" in new_result["paging"]:
-            # La URL de next incluye el base, lo cambiamos a ''.
-            new_result = self._get(new_result["paging"]["next"].replace(self.BASE_URL, ""), params=params)
-            page_list += new_result["data"]
-        return {"data": page_list}  # Se retorna un dict con el key data para mantener compatibilidad.
+        return self._get("/me/accounts", params=params)
 
     @access_token_required
     def get_page_token(self, page_id: str) -> str:
@@ -292,14 +278,7 @@ class Client(object):
             dict: Graph API Response.
         """
         params = self._get_params(token=page_access_token)
-        new_result = self._get("/{}/leadgen_forms".format(page_id), params=params)
-        del params["access_token"]  # Las urls siguiente ya incluyen el access token, pero no el proof.
-        form_list = new_result["data"]
-        while "paging" in new_result and "next" in new_result["paging"]:
-            # La URL de next incluye el base, lo cambiamos a ''.
-            new_result = self._get(new_result["paging"]["next"].replace(self.BASE_URL, ""), params=params)
-            form_list += new_result["data"]
-        return {"data": form_list}
+        return self._get("/{}/leadgen_forms".format(page_id), params=params)
 
     @access_token_required
     def get_leadgen(self, leadgen_id: str) -> dict:
@@ -391,30 +370,64 @@ class Client(object):
         }
         return self._post("/{}/customaudiences".format(account_id), params=params, json=json)
 
-    def add_user_to_audience(self, audience_id: str, json: dict = None) -> dict:
+    def add_user_to_audience(self, audience_id: str, schema: str, data: list) -> dict:
         """Add people to your ad's audience with a hash of data from your business.
 
         https://developers.facebook.com/docs/marketing-api/reference/custom-audience/users/
 
         Args:
             audience_id (str): Audience id.
-            json (dict, optional): User data. Defaults to None.
+            schema (str): Specify what type of information you will be providing.
+            data (list): List of data corresponding to the schema.
 
         Returns:
             dict: Graph API Response.
         """
         params = self._get_params()
-        json["payload"]["data"] = [sha256(i.encode("utf-8")).hexdigest() for i in json["payload"]["data"]]
+        json = {
+            "session": {
+                "session_id": int(str(uuid4().int)[:7]),
+                "batch_seq": 1,
+                "last_batch_flag": True,
+                "estimated_num_total": len(data),
+            },
+            "payload": {"schema": schema, "data": [sha256(i.encode("utf-8")).hexdigest() for i in data]},
+        }
         return self._post("/{}/users".format(audience_id), params=params, json=json)
 
-    def get_adaccounts_id(self, fields: list = None) -> dict:
-        """[summary]
+    def remove_user_to_audience(self, audience_id: str, schema: str, data: list) -> dict:
+        """Remove people from your ad's audience with a hash of data from your business.
+
+        https://developers.facebook.com/docs/marketing-api/reference/custom-audience/users/
 
         Args:
-            fields (list, optional): [description]. Defaults to None.
+            audience_id (str): Audience id.
+            schema (str): Specify what type of information you will be providing.
+            data (list): List of data corresponding to the schema.
 
         Returns:
-            dict: [description]
+            dict: Graph API Response.
+        """
+        params = self._get_params()
+        json = {
+            "session": {
+                "session_id": int(str(uuid4().int)[:7]),
+                "batch_seq": 1,
+                "last_batch_flag": True,
+                "estimated_num_total": len(data),
+            },
+            "payload": {"schema": schema, "data": [sha256(i.encode("utf-8")).hexdigest() for i in data]},
+        }
+        return self._delete("/{}/users".format(audience_id), params=params, json=json)
+
+    def get_adaccounts_id(self, fields: list = None) -> dict:
+        """Retrieves Ad Accounts.
+
+        Args:
+            fields (list, optional): Fields to include in the response. Defaults to None.
+
+        Returns:
+            dict: Graph API Response.
         """
         params = self._get_params()
         if fields and isinstance(fields, list):
@@ -557,8 +570,56 @@ class Client(object):
             params["fields"] = ",".join(fields)
         return self._get("/{}/top_media".format(hashtag_id), params=params)
 
+    def _get_params(self, token: str = None) -> dict:
+        """Sets parameters for requests.
+
+        Args:
+            token (str, optional): Access token. Defaults to None.
+
+        Returns:
+            dict: Access token and hashed access token.
+        """
+        _token = token if token else self.access_token
+        return {"access_token": _token, "appsecret_proof": self._get_app_secret_proof(_token)}
+
+    def _get_app_secret_proof(self, token: str) -> str:
+        """Generates app secret proof.
+
+        https://developers.facebook.com/docs/graph-api/security
+
+        Args:
+            token (str): Access token to hash.
+
+        Returns:
+            str: Hashed access token.
+        """
+        key = self.app_secret.encode("utf-8")
+        msg = token.encode("utf-8")
+        h = hmac.new(key, msg=msg, digestmod=hashlib.sha256)
+        return h.hexdigest()
+
+    def _paginate_response(self, response: dict, **kwargs) -> dict:
+        """Cursor-based Pagination
+
+        https://developers.facebook.com/docs/graph-api/results
+
+        Args:
+            response (dict): Graph API Response.
+
+        Returns:
+            dict: Graph API Response.
+        """
+        if not self.paginate:
+            return response
+        while "paging" in response and "next" in response["paging"]:
+            data = response["data"]
+            # La URL de next incluye el base, lo cambiamos a ''.
+            response = self._get(response["paging"]["next"].replace(self.BASE_URL, ""), **kwargs)
+            response["data"] += data
+        return response
+
     def _get(self, endpoint, **kwargs):
-        return self._request("GET", endpoint, **kwargs)
+        return self._paginate_response(self._request("GET", endpoint, **kwargs), **kwargs)
 
     def _post(self, endpoint, **kwargs):
         return self._request("POST", endpoint, **kwargs)
