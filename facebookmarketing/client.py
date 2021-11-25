@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+from hashlib import sha256
 from urllib.parse import urlencode, urlparse
 
 import requests
@@ -10,501 +11,589 @@ from facebookmarketing.enumerators import ErrorEnum
 
 
 class Client(object):
-    BASE_URL = 'https://graph.facebook.com/'
+    BASE_URL = "https://graph.facebook.com/"
 
-    def __init__(self, app_id, app_secret, version='v12.0', requests_hooks=None):
+    def __init__(self, app_id, app_secret, version="v12.0", requests_hooks=None):
         self.app_id = app_id
         self.app_secret = app_secret
-        if not version.startswith('v'):
-            version = 'v' + version
+        if not version.startswith("v"):
+            version = "v" + version
         self.version = version
         self.access_token = None
         self.BASE_URL += self.version
         if requests_hooks and not isinstance(requests_hooks, dict):
             raise Exception(
-                'requests_hooks must be a dict. e.g. {"response": func}. http://docs.python-requests.org/en/master/user/advanced/#event-hooks')
+                'requests_hooks must be a dict. e.g. {"response": func}. http://docs.python-requests.org/en/master/user/advanced/#event-hooks'
+            )
         self.requests_hooks = requests_hooks
 
-    def set_access_token(self, token):
-        """Sets the Access Token for its use in this library.
+    def set_access_token(self, token: str) -> None:
+        """Sets the User Access Token for its use in this library.
 
         Args:
-            token: A string with the Access Token.
-
+            token (str): User Access Token.
         """
         self.access_token = token
 
-    def get_app_token(self):
+    def get_app_token(self) -> dict:
         """Generates an Application Token.
 
-
         Returns:
-            A dict.
-
+            dict: App token data.
         """
-        params = {
-            'client_id': self.app_id,
-            'client_secret': self.app_secret,
-            'grant_type': 'client_credentials'
-        }
-        return self._get('/oauth/access_token', params=params)
+        params = {"client_id": self.app_id, "client_secret": self.app_secret, "grant_type": "client_credentials"}
+        return self._get("/oauth/access_token", params=params)
 
-    def authorization_url(self, redirect_uri, state, scope=None):
+    def authorization_url(self, redirect_uri: str, state: str, scope: list = None) -> str:
         """Generates an Authorization URL.
 
         Args:
-            redirect_uri: A string with the redirect_url set in the app config.
-            state:
-            scope: A sequence of strings with the scopes.
+            redirect_uri (str): A string with the redirect_url set in the app config.
+            state (str): A unique code for validation.
+            scope (list, optional): A list of strings with the scopes. Defaults to None.
+
+        Raises:
+            Exception: Scope argument is not a list.
 
         Returns:
-            A string.
-
+            str: Url for oauth.
         """
         if scope is None:
             scope = []
         if not isinstance(scope, list):
-            raise Exception('scope argument must be a list')
+            raise Exception("scope argument must be a list")
 
         params = {
-            'client_id': self.app_id,
-            'redirect_uri': redirect_uri,
-            'state': state,
-            'scope': ' '.join(scope),
-            'response_type': 'code'
+            "client_id": self.app_id,
+            "redirect_uri": redirect_uri,
+            "state": state,
+            "scope": " ".join(scope),
+            "response_type": "code",
         }
-        url = 'https://facebook.com/{}/dialog/oauth?'.format(self.version) + urlencode(params)
+        url = "https://facebook.com/{}/dialog/oauth?".format(self.version) + urlencode(params)
         return url
 
-    def exchange_code(self, redirect_uri, code):
-        """Exchanges a code for a Token.
+    def exchange_code(self, redirect_uri: str, code: str) -> dict:
+        """Exchanges an oauth code for an user token.
 
         Args:
-            redirect_uri: A string with the redirect_url set in the app config.
-            code: A string containing the code to exchange.
+            redirect_uri (str): A string with the redirect_url set in the app config.
+            code (str): A string containing the code to exchange.
 
         Returns:
-            A dict.
-
+            dict: User token data.
         """
         params = {
-            'client_id': self.app_id,
-            'redirect_uri': redirect_uri,
-            'client_secret': self.app_secret,
-            'code': code
+            "client_id": self.app_id,
+            "redirect_uri": redirect_uri,
+            "client_secret": self.app_secret,
+            "code": code,
         }
-        return self._get('/oauth/access_token', params=params)
+        return self._get("/oauth/access_token", params=params)
 
-    def extend_token(self, token):
-        """Extends a short-lived Token for a long-lived Token.
+    def extend_token(self, token: str) -> dict:
+        """Extends a short-lived User Token for a long-lived User Token.
 
         Args:
-            token: A string with the token to extend.
+            token (str): User token to extend.
 
         Returns:
-            A dict.
-
+            dict: User token data.
         """
         params = {
-            'grant_type': 'fb_exchange_token',
-            'client_id': self.app_id,
-            'client_secret': self.app_secret,
-            'fb_exchange_token': token
+            "grant_type": "fb_exchange_token",
+            "client_id": self.app_id,
+            "client_secret": self.app_secret,
+            "fb_exchange_token": token,
         }
-        return self._get('/oauth/access_token', params=params)
+        return self._get("/oauth/access_token", params=params)
 
-    def inspect_token(self, input_token, token):
-        """Inspects an Access Token.
+    def inspect_token(self, input_token: str, token: str) -> dict:
+        """Inspects an User Access Token.
 
         Args:
-            input_token: A string with the Access Token to inspect.
-            token: A string with the Developer Token (App Owner) or an Application Token.
+            input_token (str): A string with the User Access Token to inspect.
+            token (str): A string with the Developer Token (App Owner) or an Application Token.
 
         Returns:
-            A dict.
-
+            dict: User token data.
         """
-        params = {
-            'input_token': input_token,
-            'access_token': token
-        }
-        return self._get('/debug_token', params=params)
+        params = {"input_token": input_token, "access_token": token}
+        return self._get("/debug_token", params=params)
 
     def _get_params(self, token=None):
         _token = token if token else self.access_token
-        return {
-            'access_token': _token,
-            'appsecret_proof': self._get_app_secret_proof(_token)
-        }
+        return {"access_token": _token, "appsecret_proof": self._get_app_secret_proof(_token)}
 
     def _get_app_secret_proof(self, token):
-        key = self.app_secret.encode('utf-8')
-        msg = token.encode('utf-8')
+        key = self.app_secret.encode("utf-8")
+        msg = token.encode("utf-8")
         h = hmac.new(key, msg=msg, digestmod=hashlib.sha256)
         return h.hexdigest()
 
     @access_token_required
-    def get_account(self):
+    def get_account(self) -> dict:
         """Gets the authed account information.
 
         Returns:
-            A dict.
-
+            dict: Account data.
         """
         params = self._get_params()
-        return self._get('/me', params=params)
+        return self._get("/me", params=params)
 
     @access_token_required
-    def get_pages(self):
-        """Gets tge authed account pages.
+    def get_pages(self) -> dict:
+        """Gets the authed account pages.
 
         Returns:
-            A dict.
-
+            dict: Pages data.
         """
         params = self._get_params()
 
-        new_result = self._get('/me/accounts', params=params)
-        del params['access_token']  # Las urls siguiente ya incluyen el access token, pero no el proof.
-        page_list = new_result['data']
-        while 'paging' in new_result and 'next' in new_result['paging']:
+        new_result = self._get("/me/accounts", params=params)
+        del params["access_token"]  # Las urls siguiente ya incluyen el access token, pero no el proof.
+        page_list = new_result["data"]
+        while "paging" in new_result and "next" in new_result["paging"]:
             # La URL de next incluye el base, lo cambiamos a ''.
-            new_result = self._get(new_result['paging']['next'].replace(self.BASE_URL, ''), params=params)
-            page_list += new_result['data']
-        return {'data': page_list}  # Se retorna un dict con el key data para mantener compatibilidad.
+            new_result = self._get(new_result["paging"]["next"].replace(self.BASE_URL, ""), params=params)
+            page_list += new_result["data"]
+        return {"data": page_list}  # Se retorna un dict con el key data para mantener compatibilidad.
 
     @access_token_required
-    def get_page_token(self, page_id):
+    def get_page_token(self, page_id: str) -> str:
         """Gets page token for the given page.
 
         Args:
-            page_id: String with Page's ID.
+            page_id (str): String with Page's ID.
 
         Returns:
-            dict
+            dict: Page token data.
         """
         pages = self.get_pages()
-        page = next((p for p in pages['data'] if p['id'] == str(page_id)), None)
+        page = next((p for p in pages["data"] if p["id"] == str(page_id)), None)
         if not page:
             return None
-        return page['access_token']
+        return page["access_token"]
 
-    def get_page_subscribed_apps(self, page_id, token):
-        """
+    def get_page_subscribed_apps(self, page_id: str, token: str) -> dict:
+        """Get a list of apps subscribed to the Page's webhook updates.
+
+        https://developers.facebook.com/docs/graph-api/reference/page/subscribed_apps/
 
         Args:
-            page_id:
-            token:
+            page_id (str): Page's ID.
+            token (str): Page's token.
 
         Returns:
-
+            dict: Graph API Response.
         """
         params = self._get_params(token)
-        return self._get('/{}/subscribed_apps'.format(page_id), params=params)
+        return self._get("/{}/subscribed_apps".format(page_id), params=params)
 
-    def create_page_subscribed_apps(self, page_id, token, params=None):
-        """
+    def create_page_subscribed_apps(self, page_id: str, token: str, params: dict = None) -> dict:
+        """Associates an Application to a Page's webhook updates.
+
+        https://developers.facebook.com/docs/graph-api/reference/page/subscribed_apps/
 
         Args:
-            page_id:
-            token:
-            params:
+            page_id (str): Page's ID.
+            token (str): Page's token.
+            params (dict, optional): Page Webhooks fields that you want to subscribe. Defaults to None.
 
         Returns:
-
+            dict: Graph API Response.
         """
         _params = self._get_params(token)
         if params and isinstance(params, dict):
             _params.update(params)
-        return self._post('/{}/subscribed_apps'.format(page_id), params=_params)
+        return self._post("/{}/subscribed_apps".format(page_id), params=_params)
 
-    def delete_page_subscribed_apps(self, page_id, token):
-        """
+    def delete_page_subscribed_apps(self, page_id: str, token: str) -> dict:
+        """Dissociates an Application from a Page's webhook updates.
+
+        https://developers.facebook.com/docs/graph-api/reference/page/subscribed_apps/
 
         Args:
-            page_id:
-            token:
+            page_id (str): Page's ID.
+            token (str): Page's token.
 
         Returns:
-
+            dict: Graph API Response.
         """
         params = self._get_params(token)
-        return self._delete('/{}/subscribed_apps'.format(page_id), params=params)
+        return self._delete("/{}/subscribed_apps".format(page_id), params=params)
 
-    def get_app_subscriptions(self, application_token):
-        """
+    def get_app_subscriptions(self, application_token: str) -> dict:
+        """Retrieves Webhook subscriptions for an App.
+
+        https://developers.facebook.com/docs/graph-api/reference/v12.0/app/subscriptions
 
         Args:
-            token:
+            application_token (str): Application Token.
 
         Returns:
-
+            dict: Graph API Response.
         """
         params = self._get_params(application_token)
-        return self._get('/{}/subscriptions'.format(self.app_id), params=params)
+        return self._get("/{}/subscriptions".format(self.app_id), params=params)
 
-    def create_app_subscriptions(self, object, callback_url, fields, verify_token, token):
-        """
+    def create_app_subscriptions(
+        self, object: str, callback_url: str, fields: str, verify_token: str, token: str
+    ) -> dict:
+        """Creates a Webhook subscription for an App.
+
+        https://developers.facebook.com/docs/graph-api/reference/v12.0/app/subscriptions
 
         Args:
-            object:
-            callback_url:
-            fields:
-            verify_token:
-            token:
+            object (str): Indicates the object type that this subscription applies to.
+            callback_url (str): The URL that will receive the POST request when an update is triggered.
+            fields (str): The set of fields in this object that are subscribed to.
+            verify_token (str): Indicates whether or not the subscription is active.
+            token (str): Application Token.
+
+        Raises:
+            exceptions.HttpsRequired: callback_url is not https.
 
         Returns:
-
+            dict: Graph API Response.
         """
         o = urlparse(callback_url)
 
-        if o.scheme != 'https':
+        if o.scheme != "https":
             raise exceptions.HttpsRequired
 
         params = self._get_params(token)
-        params.update({
-            'object': object,
-            'callback_url': callback_url,
-            'fields': fields,
-            'verify_token': verify_token
-        })
-        return self._post('/{}/subscriptions'.format(self.app_id), params=params)
+        params.update({"object": object, "callback_url": callback_url, "fields": fields, "verify_token": verify_token})
+        return self._post("/{}/subscriptions".format(self.app_id), params=params)
 
-    def delete_app_subscriptions(self, token):
-        """
+    def delete_app_subscriptions(self, token: str) -> dict:
+        """Deletes a Webhook subscription for an App.
+
+        https://developers.facebook.com/docs/graph-api/reference/v12.0/app/subscriptions
 
         Args:
-            token:
+            token (str): Application Token.
 
         Returns:
-
+            dict: Graph API Response.
         """
         params = self._get_params(token)
-        return self._delete('/{}/subscriptions'.format(self.app_id), params=params)
+        return self._delete("/{}/subscriptions".format(self.app_id), params=params)
 
     @access_token_required
-    def get_ad_account_leadgen_forms(self, page_id, page_access_token=None):
+    def get_ad_account_leadgen_forms(self, page_id: str, page_access_token: str = None) -> dict:
         """Gets the forms for the given page.
 
         Args:
-            page_id: A string with Page's ID.
+            page_id (str): A string with Page's ID.
+            page_access_token (str, optional): Page Access Token. Defaults to None.
 
         Returns:
-            A dict.
-
+            dict: Graph API Response.
         """
         params = self._get_params(token=page_access_token)
-        new_result = self._get('/{}/leadgen_forms'.format(page_id), params=params)
-        del params['access_token']  # Las urls siguiente ya incluyen el access token, pero no el proof.
-        form_list = new_result['data']
-        while 'paging' in new_result and 'next' in new_result['paging']:
+        new_result = self._get("/{}/leadgen_forms".format(page_id), params=params)
+        del params["access_token"]  # Las urls siguiente ya incluyen el access token, pero no el proof.
+        form_list = new_result["data"]
+        while "paging" in new_result and "next" in new_result["paging"]:
             # La URL de next incluye el base, lo cambiamos a ''.
-            new_result = self._get(new_result['paging']['next'].replace(self.BASE_URL, ''), params=params)
-            form_list += new_result['data']
-        return {'data': form_list}
+            new_result = self._get(new_result["paging"]["next"].replace(self.BASE_URL, ""), params=params)
+            form_list += new_result["data"]
+        return {"data": form_list}
 
     @access_token_required
-    def get_leadgen(self, leadgen_id):
-        """
-            Get a single leadgen given an id.
+    def get_leadgen(self, leadgen_id: str) -> dict:
+        """Get a single leadgen given an id.
 
         Args:
-            leadgen_id: A string with the leadgen's ID.
+            leadgen_id (str): A string with the leadgen's ID.
 
         Returns:
-            A dict.
+            dict: Graph API Response.
         """
         params = self._get_params()
-        return self._get('/{0}'.format(leadgen_id), params=params)
+        return self._get("/{0}".format(leadgen_id), params=params)
 
     @access_token_required
-    def get_ad_leads(self, leadgen_form_id, from_date=None, to_date=None, after=None):
+    def get_ad_leads(
+        self, leadgen_form_id: str, from_date: str = None, to_date: str = None, after: str = None
+    ) -> dict:
         """Gets the leads for the given form.
 
         Args:
-            leadgen_form_id: A string with the Form's ID.
-            from_date: A timestamp.
-            to_date: A timestamp.
-            after: A cursor.
+            leadgen_form_id (str): A string with the Form's ID.
+            from_date (str, optional): A timestamp. Defaults to None.
+            to_date (str, optional): A timestamp. Defaults to None.
+            after (str, optional): A cursor. Defaults to None.
 
         Returns:
-            A dict.
-
+            dict: Graph API Response.
         """
         params = self._get_params()
         if from_date:
-            params['from_date'] = from_date
+            params["from_date"] = from_date
         if to_date:
-            params['to_date'] = to_date
+            params["to_date"] = to_date
         if after:
-            params['after'] = after
-        return self._get('/{}/leads'.format(leadgen_form_id), params=params)
+            params["after"] = after
+        return self._get("/{}/leads".format(leadgen_form_id), params=params)
 
-    def get_custom_audience(self, account_id, fields=None):
-        """
+    def get_custom_audience(self, account_id: str, fields: list = None) -> dict:
+        """Retrieve a custom audience data.
 
         Args:
-            account_id:
-            fields:
+            account_id (str): Ad account id.
+            fields (list, optional): Fields to include in the response. Defaults to None.
 
         Returns:
-
+            dict: Graph API Response.
         """
         params = self._get_params()
         if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/{}/customaudiences'.format(account_id), params=params)
+            params["fields"] = ",".join(fields)
+        return self._get("/{}/customaudiences".format(account_id), params=params)
 
-    def get_adaccounts_id(self, fields=None):
-        """
+    def create_custom_audience(
+        self,
+        account_id: str,
+        name: str,
+        description: str,
+        subtype: str = "CUSTOM",
+        customer_file_source: str = "USER_PROVIDED_ONLY",
+    ) -> dict:
+        """Create an empty Custom Audience.
+
+        Args:
+            account_id (str): Ad account id
+            name (str): Custom Audience name
+            description (str): Custom Audience description
+            subtype (str): Type of Custom Audience
+            customer_file_source (str): Describes how the customer information in your Custom Audience was originally collected.
+                Values:
+                USER_PROVIDED_ONLY
+                Advertisers collected information directly from customers
+                PARTNER_PROVIDED_ONLY
+                Advertisers sourced information directly from partners (e.g., agencies or data providers)
+                BOTH_USER_AND_PARTNER_PROVIDED
+                Advertisers collected information directly from customers and it was also sourced from partners (e.g., agencies)
+
+        https://developers.facebook.com/docs/marketing-api/audiences/guides/custom-audiences
 
         Returns:
+            dict: Graph API Response.
+        """
+        params = self._get_params()
+        json = {
+            "name": name,
+            "description": description,
+            "subtype": subtype,
+            "customer_file_source": customer_file_source,
+        }
+        return self._post("/{}/customaudiences".format(account_id), params=params, json=json)
 
+    def add_user_to_audience(self, audience_id: str, json: dict = None) -> dict:
+        """Add people to your ad's audience with a hash of data from your business.
+
+        https://developers.facebook.com/docs/marketing-api/reference/custom-audience/users/
+
+        Args:
+            audience_id (str): Audience id.
+            json (dict, optional): User data. Defaults to None.
+
+        Returns:
+            dict: Graph API Response.
+        """
+        params = self._get_params()
+        json["payload"]["data"] = [sha256(i.encode("utf-8")).hexdigest() for i in json["payload"]["data"]]
+        return self._post("/{}/users".format(audience_id), params=params, json=json)
+
+    def get_adaccounts_id(self, fields: list = None) -> dict:
+        """[summary]
+
+        Args:
+            fields (list, optional): [description]. Defaults to None.
+
+        Returns:
+            dict: [description]
         """
         params = self._get_params()
         if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/me/adaccounts', params=params)
+            params["fields"] = ",".join(fields)
+        return self._get("/me/adaccounts", params=params)
 
-    def get_instagram(self, page_id, fields=None):
-        """
+    def get_instagram(self, page_id: str, fields: list = None) -> dict:
+        """[summary]
+
+        Args:
+            page_id (str): [description]
+            fields (list, optional): [description]. Defaults to None.
 
         Returns:
-
+            dict: [description]
         """
         params = self._get_params()
         if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/{}'.format(page_id), params=params)
+            params["fields"] = ",".join(fields)
+        return self._get("/{}".format(page_id), params=params)
 
-    def get_instagram_media(self, page_id, fields=None):
-        """
+    def get_instagram_media(self, page_id: str, fields: list = None) -> dict:
+        """[summary]
+
+        Args:
+            page_id (str): [description]
+            fields (list, optional): [description]. Defaults to None.
 
         Returns:
-
+            dict: [description]
         """
         params = self._get_params()
         if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/{}/media'.format(page_id), params=params)
+            params["fields"] = ",".join(fields)
+        return self._get("/{}/media".format(page_id), params=params)
 
-    def get_instagram_media_object(self, media_id, fields=None):
-        """
+    def get_instagram_media_object(self, media_id: str, fields: list = None) -> dict:
+        """[summary]
+
+        Args:
+            media_id (str): [description]
+            fields (list, optional): [description]. Defaults to None.
 
         Returns:
-
+            dict: [description]
         """
         params = self._get_params()
         if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/{}'.format(media_id), params=params)
+            params["fields"] = ",".join(fields)
+        return self._get("/{}".format(media_id), params=params)
 
-    def get_instagram_media_comment(self, media_id):
-        """
+    def get_instagram_media_comment(self, media_id: str) -> dict:
+        """[summary]
+
+        Args:
+            media_id (str): [description]
 
         Returns:
-
+            dict: [description]
         """
         params = self._get_params()
-        return self._get('/{}/comments'.format(media_id), params=params)
+        return self._get("/{}/comments".format(media_id), params=params)
 
-    def get_instagram_hashtag(self, page_id, fields=None):
-        """
+    def get_instagram_hashtag(self, page_id: str, fields: list = None) -> dict:
+        """[summary]
 
-        Returns:
-
-        """
-        params = self._get_params()
-        if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/{}/media'.format(page_id), params=params)
-
-    def get_instagram_hashtag_search(self, user_id, query):
-        """
+        Args:
+            page_id (str): [description]
+            fields (list, optional): [description]. Defaults to None.
 
         Returns:
-
-        """
-        params = self._get_params()
-        params['user_id'] = user_id
-        params['q'] = query
-        return self._get('/ig_hashtag_search', params=params)
-
-    def get_instagram_hashtag_object(self, hashtag_id, fields=None):
-        """
-
-        Returns:
-
+            dict: [description]
         """
         params = self._get_params()
         if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/{}'.format(hashtag_id), params=params)
+            params["fields"] = ",".join(fields)
+        return self._get("/{}/media".format(page_id), params=params)
 
-    def get_instagram_hashtag_recent_media(self, hashtag_id, user_id, fields=None):
-        """
+    def get_instagram_hashtag_search(self, user_id: str, query: str) -> dict:
+        """[summary]
 
-        Returns:
-
-        """
-        params = self._get_params()
-        params['user_id'] = user_id
-        if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/{}/recent_media'.format(hashtag_id), params=params)
-
-    def get_instagram_hashtag_top_media(self, hashtag_id, user_id, fields=None):
-        """
+        Args:
+            user_id (str): [description]
+            query (str): [description]
 
         Returns:
-
+            dict: [description]
         """
         params = self._get_params()
-        params['user_id'] = user_id
+        params["user_id"] = user_id
+        params["q"] = query
+        return self._get("/ig_hashtag_search", params=params)
+
+    def get_instagram_hashtag_object(self, hashtag_id: str, fields: list = None) -> dict:
+        """[summary]
+
+        Args:
+            hashtag_id (str): [description]
+            fields (list, optional): [description]. Defaults to None.
+
+        Returns:
+            dict: [description]
+        """
+        params = self._get_params()
         if fields and isinstance(fields, list):
-            params['fields'] = ','.join(fields)
-        return self._get('/{}/top_media'.format(hashtag_id), params=params)
+            params["fields"] = ",".join(fields)
+        return self._get("/{}".format(hashtag_id), params=params)
+
+    def get_instagram_hashtag_recent_media(self, hashtag_id: str, user_id: str, fields: list = None) -> dict:
+        """[summary]
+
+        Args:
+            hashtag_id (str): [description]
+            user_id (str): [description]
+            fields (list, optional): [description]. Defaults to None.
+
+        Returns:
+            dict: [description]
+        """
+        params = self._get_params()
+        params["user_id"] = user_id
+        if fields and isinstance(fields, list):
+            params["fields"] = ",".join(fields)
+        return self._get("/{}/recent_media".format(hashtag_id), params=params)
+
+    def get_instagram_hashtag_top_media(self, hashtag_id: str, user_id: str, fields: list = None) -> dict:
+        """[summary]
+
+        Args:
+            hashtag_id (str): [description]
+            user_id (str): [description]
+            fields (list, optional): [description]. Defaults to None.
+
+        Returns:
+            dict: [description]
+        """
+        params = self._get_params()
+        params["user_id"] = user_id
+        if fields and isinstance(fields, list):
+            params["fields"] = ",".join(fields)
+        return self._get("/{}/top_media".format(hashtag_id), params=params)
 
     def _get(self, endpoint, **kwargs):
-        return self._request('GET', endpoint, **kwargs)
+        return self._request("GET", endpoint, **kwargs)
 
     def _post(self, endpoint, **kwargs):
-        return self._request('POST', endpoint, **kwargs)
+        return self._request("POST", endpoint, **kwargs)
 
     def _delete(self, endpoint, **kwargs):
-        return self._request('DELETE', endpoint, **kwargs)
+        return self._request("DELETE", endpoint, **kwargs)
 
     def _request(self, method, endpoint, headers=None, **kwargs):
-        _headers = {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
+        _headers = {"Accept": "application/json", "Content-Type": "application/json"}
         if headers:
             _headers.update(headers)
         if self.requests_hooks:
-            kwargs.update({'hooks': self.requests_hooks})
+            kwargs.update({"hooks": self.requests_hooks})
         return self._parse(requests.request(method, self.BASE_URL + endpoint, headers=_headers, **kwargs))
 
     def _parse(self, response):
-        if 'application/json' in response.headers['Content-Type']:
+        if "application/json" in response.headers["Content-Type"]:
             r = response.json()
         else:
             return response.text
 
-        if 'error' in r:
-            error = r['error']
-        elif 'data' in r and 'error' in r['data']:
-            error = r['data']['error']
+        if "error" in r:
+            error = r["error"]
+        elif "data" in r and "error" in r["data"]:
+            error = r["data"]["error"]
         else:
             error = None
 
         if error:
-            code = error['code']
-            message = error['message']
+            code = error["code"]
+            message = error["message"]
             try:
                 error_enum = ErrorEnum(code)
             except Exception:
-                raise exceptions.UnexpectedError('Error: {}. Message {}'.format(code, message))
+                raise exceptions.UnexpectedError("Error: {}. Message {}".format(code, message))
             if error_enum == ErrorEnum.UnknownError:
                 raise exceptions.UnknownError(message)
             elif error_enum == ErrorEnum.AppRateLimit:
@@ -524,6 +613,6 @@ class Client(object):
             elif error_enum == ErrorEnum.ExtendedPermissionRequired:
                 raise exceptions.ExtendedPermissionRequiredError(message)
             else:
-                raise exceptions.BaseError('Error: {}. Message {}'.format(code, message))
+                raise exceptions.BaseError("Error: {}. Message {}".format(code, message))
 
         return r
