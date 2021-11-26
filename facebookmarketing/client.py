@@ -420,7 +420,7 @@ class Client(object):
         }
         return self._delete("/{}/users".format(audience_id), params=params, json=json)
 
-    def get_adaccounts_id(self, fields: list = None) -> dict:
+    def get_adaccounts(self, fields: list = None) -> dict:
         """Retrieves Ad Accounts.
 
         Args:
