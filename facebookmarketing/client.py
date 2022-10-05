@@ -15,7 +15,13 @@ class Client(object):
     BASE_URL = "https://graph.facebook.com/"
 
     def __init__(
-        self, app_id: str, app_secret: str, version: str = "v12.0", requests_hooks: dict = None, paginate: bool = True
+        self,
+        app_id: str,
+        app_secret: str,
+        version: str = "v12.0",
+        requests_hooks: dict = None,
+        paginate: bool = True,
+        limit: int = 100,
     ) -> None:
         self.app_id = app_id
         self.app_secret = app_secret
@@ -24,6 +30,7 @@ class Client(object):
         self.version = version
         self.access_token = None
         self.paginate = paginate
+        self.limit = limit
         self.BASE_URL += self.version
         if requests_hooks and not isinstance(requests_hooks, dict):
             raise Exception(
@@ -143,6 +150,7 @@ class Client(object):
             dict: Pages data.
         """
         params = self._get_params()
+        params["limit"] = self.limit
         return self._get("/me/accounts", params=params)
 
     @access_token_required
@@ -278,6 +286,7 @@ class Client(object):
             dict: Graph API Response.
         """
         params = self._get_params(token=page_access_token)
+        params["limit"] = self.limit
         return self._get("/{}/leadgen_forms".format(page_id), params=params)
 
     @access_token_required
@@ -613,7 +622,9 @@ class Client(object):
             return response
         while "paging" in response and "next" in response["paging"]:
             data = response["data"]
-            # La URL de next incluye el base, lo cambiamos a ''.
+            params = kwargs.get("params", {})
+            if "limit" in params:
+                params.pop("limit")
             response = self._get(response["paging"]["next"].replace(self.BASE_URL, ""), **kwargs)
             response["data"] += data
         return response
