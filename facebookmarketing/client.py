@@ -290,7 +290,7 @@ class Client(object):
         return self._get("/{}/leadgen_forms".format(page_id), params=params)
 
     @access_token_required
-    def get_leadgen(self, leadgen_id: str) -> dict:
+    def get_leadgen(self, leadgen_id: str, fields: list = None) -> dict:
         """Get a single leadgen given an id.
 
         Args:
@@ -300,11 +300,13 @@ class Client(object):
             dict: Graph API Response.
         """
         params = self._get_params()
+        if fields:
+            params["fields"] = ",".join(fields)
         return self._get("/{0}".format(leadgen_id), params=params)
 
     @access_token_required
     def get_ad_leads(
-        self, leadgen_form_id: str, from_date: str = None, to_date: str = None, after: str = None
+        self, leadgen_form_id: str, from_date: str = None, to_date: str = None, after: str = None, fields: list = None
     ) -> dict:
         """Gets the leads for the given form.
 
@@ -324,6 +326,8 @@ class Client(object):
             params["to_date"] = to_date
         if after:
             params["after"] = after
+        if fields:
+            params["fields"] = ",".join(fields)
         return self._get("/{}/leads".format(leadgen_form_id), params=params)
 
     def get_custom_audience(self, account_id: str, fields: list = None) -> dict:

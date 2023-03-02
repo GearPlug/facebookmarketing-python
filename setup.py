@@ -7,7 +7,7 @@ def read(fname):
 
 
 setup(name='facebookmarketing-python',
-      version='1.1.0',
+      version='1.1.1',
       description='API wrapper for Facebook written in Python',
       long_description=read('README.md'),
       long_description_content_type="text/markdown",
